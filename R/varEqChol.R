@@ -495,6 +495,18 @@ randomDAG2_hub <- function(p,probConnect)
 ### Generate data
 ###############
 Bmin<-0.5
+#' Title
+#'
+#' @param n - number of observations
+#' @param p - number of features
+#' @param pc - sparsity probability
+#' @param type - type of the undirected graph
+#' @param err - error distribution
+#'
+#' @return - X (n x p) data
+#' @export
+#'
+
 get_DAGdata<-function(n,p,pc,type='hub',err='g'){
    if (type=='hub'){
       D<-randomDAG2_hub(p,pc)

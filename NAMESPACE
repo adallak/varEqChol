@@ -2,4 +2,5 @@
 
 export(compareGraph)
 export(eqvarDAG_ch)
+export(get_DAGdata)
 export(rowdeletion)
