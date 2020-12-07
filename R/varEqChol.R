@@ -9,7 +9,7 @@ require(varband)
 #' @param L - lower triangular Cholesky factor
 #' @param k - index for row and column
 #' @param const - constant value
-#'
+#' @export
 #' @return - Updated Cholesky factor
 rowdeletion <- function(L, k, const = 0.001)
 {
@@ -63,7 +63,7 @@ get_ordering_ch <- function(L, T, p)
 #' @param FCD     - parameters for refine
 #' @param precmtd - parameters for refine
 #' @param crit   - criterion for penalty parameter selection
-#'
+#' @export
 #' @return - ordering, lower triangular Cholesky factor and adjacency matrix
 eqvarDAG_ch <- function(X, type = c("low", "high"), crit = c("CV","eBIC"), gamma = 0.5, refine = FALSE, lamlist = NULL,
                         nlam = 30, flmin = 0.01, mtd="dlasso",alpha=0.05,
@@ -187,7 +187,7 @@ DAG_from_Ordering<-function(X,TO,mtd="ztest",alpha=0.05,
 #' @param estAdj - estimated adjacency matrix
 #' @param trueAdj - true adjacency matrix
 #' @return True Positive, False Positive and True Discovery rates
-
+#' @export
 compareGraph <- function (estAdj, trueAdj)
 {
 
