@@ -1,5 +1,5 @@
-require(mgcv)
-require(varband)
+# require(mgcv)
+# require(varband)
 ## Implements rowdeletion algorithm as in Davis et.al (2005)
 
 
@@ -26,19 +26,27 @@ rowdeletion <- function(L, k, const = 0.001)
 }
 
 
-#' Returns ordering from the Cholesky factor
+
+
+
+#' Find order from the Cholesky factor
+#'
 #' @param L - Cholesky factor of precision matrix
-#' @param T - Cholesky factor of covariance matrix
+#' @param mat.T - Cholesky factor of covariance matrix
 #' @param p - dimensionality of the data
-get_ordering_ch <- function(L, T, p)
+#'
+#' @return ord - vector of ordering of variables
+#'
+#' @export
+#'
+get_ordering_ch <- function(L, mat.T, p)
 {
       ord = c()
       for ( j in 1 : p){
             chol_i = which.min(colSums(L^2))
             ord[j] = chol_i
-            T = rowdeletion(T,chol_i)
-            L       = solve(T)
-            ord[j] = chol_i
+            mat.T = rowdeletion(mat.T,chol_i)
+            L       = solve(mat.T)
       }
       return(rev(ord))
 }
@@ -72,20 +80,29 @@ eqvarDAG_ch <- function(X, type = c("low", "high"), crit = c("CV","eBIC"), gamma
       p = dim(X)[2]
       n = dim(X)[1]
       ord = c()
+      if ((type == "low") & (refine == FALSE))
+      {
+         stop("refine should be TRUE")
+      }
       if (type == "low")
       {
             S = cov(X)
             T = t(chol(S))
             L = solve(T)
+            L[abs(L) < 1e-9] = 0
+            lambda = NULL
 
       }else{
             if (crit == "CV")
             {
-               L = varband_cv(X, w = FALSE, lasso = TRUE, lamlist = lamlist, nlam = nlam,
-                       flmin = flmin, folds = NULL, nfolds = 5)$L_refit
+
+               ch = varband_cv(X, w = FALSE, lasso = TRUE, lamlist = lamlist, nlam = nlam,
+                       flmin = flmin, folds = NULL, nfolds = 5)
+               lambda = ch$lamlist[ch$ibest_refit]
+               L  = ch$L_refit
             }else{
                L = varband_ebic(X, w = FALSE, lasso = TRUE, lamlist = lamlist, nlam = nlam,
-                                  flmin = flmin, folds = NULL, nfolds = 5, gamma = gamma)$L_refit
+                                  flmin = flmin, folds = NULL, nfolds = 5, gamma = gamma)$L_fit
             }
             T = solve(L)
       }
@@ -94,12 +111,13 @@ eqvarDAG_ch <- function(X, type = c("low", "high"), crit = c("CV","eBIC"), gamma
       if(isTRUE(refine))
       {
             adj=DAG_from_Ordering(X,TO = ord,mtd,alpha,threshold,FCD,precmtd)
+            adj = adj[ord,ord]
       }else{
          if (crit == "CV")
          {
-
-            L = varband_cv(X[,ord], w = FALSE, lasso = TRUE, lamlist = lamlist, nlam = nlam,
-                           flmin = flmin, folds = NULL, nfolds = 5)$L_refit
+            S <- crossprod(scale(X[, ord], center=TRUE, scale=FALSE)) / n
+            init = diag(1/ sqrt(diag(S)))
+            L = varband(S, w = FALSE, init = init, lasso = TRUE, lambda = lambda)
          }else{
             L = varband_ebic(X[, ord], w = FALSE, lasso = TRUE, lamlist = lamlist, nlam = nlam,
                              flmin = flmin, folds = NULL, nfolds = 5, gamma = gamma)$L_refit
@@ -494,8 +512,8 @@ randomDAG2_hub <- function(p,probConnect)
 ###############
 ### Generate data
 ###############
-Bmin<-0.5
-#' Title
+#' This function generates  (n xp) data. Borrowed from
+#' EqVarDAG package
 #'
 #' @param n - number of observations
 #' @param p - number of features
@@ -504,10 +522,10 @@ Bmin<-0.5
 #' @param err - error distribution
 #'
 #' @return - X (n x p) data
-#' @export
 #'
+#' @export
 
-get_DAGdata<-function(n,p,pc,type='hub',err='g'){
+get_DAGdata<-function(n,p,pc,type='hub',err='g', Bmin = 0.5){
    if (type=='hub'){
       D<-randomDAG2_hub(p,pc)
    } else if (type=='chain') {
@@ -527,4 +545,46 @@ get_DAGdata<-function(n,p,pc,type='hub',err='g'){
    X <- solve(diag(rep(1, p)) - B, errs)
    X <- t(X)
    return(list(truth=truth,B=B,X=X,TO=TO))
+}
+
+
+
+#' Title
+#'
+#' @param X - n x p data matrix
+#' @param mtd -  methods for learning DAG from topological orderings.
+#' @param alpha - desired selection significance level
+#' @param threshold -  for rls and chol, the threshold level.
+#' @param FCD - for debiased lasso, use the FCD procedure [False Discovery Rate Control via Debiased Lasso. Javanmard and Montanari. 2018]
+#' or use individual tests to select support.
+#' @param precmtd - for debiased lasso, how to compute debiasing matrix
+#'               "cv": node-wise lasso w/ joint 10 fold cv
+#'               "sqrtlasso": square-root lasso (no tune, default)
+#' @export
+#' @return - adjacency matrix and ordering
+
+EqVarDAG_HD <- function(X,mtd="ztest",alpha=0.05,
+                        threshold=1e-1,FCD=NULL,precmtd=NULL)
+{
+   n<-dim(X)[1]
+   p<-dim(X)[2]
+   TO=EqVarDAG_HD_internal(X)
+   adj=DAG_from_Ordering(X,TO,mtd,alpha,threshold,FCD,precmtd)
+   return(list(adj=adj,TO=TO))
+}
+
+
+EqVarDAG_HD_internal<-function(X){
+   n<-dim(X)[1]
+   p<-dim(X)[2]
+   S<-cov(X)
+   Sinv<-solve(S)
+   ord = c()
+   for ( j in 1 : p){
+      i = which.min(diag(Sinv))
+      ord[j] = i
+      Sinv = Sinv - 1/Sinv[i,i] * Sinv[ , i] %*% t(Sinv[i, ])
+      Sinv[i, i ] = 10000000
+   }
+   return(rev(ord))
 }

@@ -2,17 +2,20 @@
 % Please edit documentation in R/varEqChol.R
 \name{get_ordering_ch}
 \alias{get_ordering_ch}
-\title{Returns ordering from the Cholesky factor}
+\title{Find order from the Cholesky factor}
 \usage{
-get_ordering_ch(L, T, p)
+get_ordering_ch(L, mat.T, p)
 }
 \arguments{
 \item{L}{- Cholesky factor of precision matrix}
 
-\item{T}{- Cholesky factor of covariance matrix}
+\item{mat.T}{- Cholesky factor of covariance matrix}
 
 \item{p}{- dimensionality of the data}
 }
+\value{
+ord - vector of ordering of variables
+}
 \description{
-Returns ordering from the Cholesky factor
+Find order from the Cholesky factor
 }

@@ -2,9 +2,10 @@
 % Please edit documentation in R/varEqChol.R
 \name{get_DAGdata}
 \alias{get_DAGdata}
-\title{Title}
+\title{This function generates  (n xp) data. Borrowed from
+EqVarDAG package}
 \usage{
-get_DAGdata(n, p, pc, type = "hub", err = "g")
+get_DAGdata(n, p, pc, type = "hub", err = "g", Bmin = 0.5)
 }
 \arguments{
 \item{n}{- number of observations}
@@ -21,5 +22,6 @@ get_DAGdata(n, p, pc, type = "hub", err = "g")
 - X (n x p) data
 }
 \description{
-Title
+This function generates  (n xp) data. Borrowed from
+EqVarDAG package
 }
