@@ -1,9 +1,16 @@
 require(mgcv)
 require(varband)
 ## Implements rowdeletion algorithm as in Davis et.al (2005)
-#' @param L - Lower triangular MAtrix
-#' @param k - index of row to be deleted
-#' @param const - constant to be added to the diagonal
+
+
+
+#' Implements rowdeletion algorithm as in Davis et.al (2005)
+#'
+#' @param L - lower triangular Cholesky factor
+#' @param k - index for row and column
+#' @param const - constant value
+#'
+#' @return - Updated Cholesky factor
 rowdeletion <- function(L, k, const = 0.001)
 {
       p = dim(L)[1]
@@ -19,7 +26,7 @@ rowdeletion <- function(L, k, const = 0.001)
 }
 
 
-### Returns ordering from the Cholesky factor
+#' Returns ordering from the Cholesky factor
 #' @param L - Cholesky factor of precision matrix
 #' @param T - Cholesky factor of covariance matrix
 #' @param p - dimensionality of the data
@@ -36,9 +43,12 @@ get_ordering_ch <- function(L, T, p)
       return(rev(ord))
 }
 
-
-
 ### Returns ordering from the Cholesky factor
+
+
+
+#' Returns ordering from the Cholesky factor
+#'
 #' @param X - n x p data
 #' @param type - type of dimension
 #' @param lamlist - A list of non-negative tuning patameters for CV
@@ -53,6 +63,8 @@ get_ordering_ch <- function(L, T, p)
 #' @param FCD     - parameters for refine
 #' @param precmtd - parameters for refine
 #' @param crit   - criterion for penalty parameter selection
+#'
+#' @return - ordering, lower triangular Cholesky factor and adjacency matrix
 eqvarDAG_ch <- function(X, type = c("low", "high"), crit = c("CV","eBIC"), gamma = 0.5, refine = FALSE, lamlist = NULL,
                         nlam = 30, flmin = 0.01, mtd="dlasso",alpha=0.05,
                         threshold=1e-1, FCD=TRUE, precmtd="sqrtlasso")
@@ -171,8 +183,10 @@ DAG_from_Ordering<-function(X,TO,mtd="ztest",alpha=0.05,
 }
 
 ######################################
+#' Compares the estimated and true adjacency matrices
 #' @param estAdj - estimated adjacency matrix
 #' @param trueAdj - true adjacency matrix
+#' @return True Positive, False Positive and True Discovery rates
 
 compareGraph <- function (estAdj, trueAdj)
 {
