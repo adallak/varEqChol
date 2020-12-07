@@ -220,7 +220,7 @@ compareGraph <- function (estAdj, trueAdj)
 }
 
 
-###########################################################
+##########################################################
 varband_ebic <- function(x, w = FALSE, lasso = TRUE, lamlist = NULL, nlam = 40,
                  flmin = 1e-2, folds = NULL, nfolds = 5, gamma = 0.5)
 {
