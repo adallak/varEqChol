@@ -2,12 +2,12 @@ Package: eqVarChol
 Title: What the Package Does (One Line, Title Case)
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Aramayis",
+           family = "Dallakyan",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: What license it uses
+           email = "dallakyan1988@tamu.edu")
+Description: Learning variable ordering from Cholesky factor.
+License: GPL2
 Encoding: UTF-8
 LazyData: true
+RoxygenNote: 6.1.1
