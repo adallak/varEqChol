@@ -186,7 +186,9 @@ DAG_from_Ordering<-function(X,TO,mtd="ztest",alpha=0.05,
 #' Compares the estimated and true adjacency matrices
 #' @param estAdj - estimated adjacency matrix
 #' @param trueAdj - true adjacency matrix
+#'
 #' @return True Positive, False Positive and True Discovery rates
+#'
 #' @export
 compareGraph <- function (estAdj, trueAdj)
 {
@@ -403,3 +405,114 @@ refit_path <- function(S, path, delta = 0.01){
    return(refit)
 }
 
+
+hammingDistance <- function(G1,G2)
+   # hammingDistance(G1,G2)
+   #
+   # Computes Hamming Distance between DAGs G1 and G2 with SHD(->,<-) = 1!!!!
+   #
+   # INPUT:  G1, G2     adjacency graph containing only zeros and ones: (i,j)=1 means edge from X_i to X_j.
+   #
+   # OUTPUT: hammingDis Hamming Distance between G1 and G2
+   #
+   # Copyright (c) 2012-2013  Jonas Peters [peters@stat.math.ethz.ch]
+   # All rights reserved.  See the file COPYING for license terms.
+{
+   allMistakesOne <- FALSE
+   if(allMistakesOne)
+   {
+      Gtmp <- (G1+G2)%%2
+      Gtmp <- Gtmp + t(Gtmp)
+      nrReversals <- sum(Gtmp == 2)/2
+      nrInclDel <- sum(Gtmp == 1)/2
+      hammingDis <- nrReversals + nrInclDel
+   } else
+   {
+      hammingDis <- sum(abs(G1 - G2))
+      # correction: dist(-,.) = 1, not 2
+      hammingDis <- hammingDis - 0.5*sum(G1 * t(G1) * (1-G2) * t(1-G2) + G2 * t(G2) * (1-G1) * t(1-G1))
+   }
+   return(hammingDis)
+}
+
+# ER graph
+randomDAG2_er <- function(p,probConnect)
+{
+   # This function is modified from randomDAG2 function by Jonas Peters
+   DAG <- diag(rep(0,p))
+   causalOrder <- sample(p)
+   for(i in 3:(p))
+   {
+      node <- causalOrder[i]
+      possibleParents <- causalOrder[1:(i-1)]
+      Parents <- possibleParents[rbinom(length(possibleParents),1,probConnect)==1]
+      DAG[Parents,node] <- rep(1,length(Parents))
+   }
+   node <- causalOrder[p-1]
+   ParentYesNo <- rbinom(n=1,size=1,prob=probConnect)
+   DAG[causalOrder[1],causalOrder[2]] <- 1
+
+   return(list(DAG=DAG,TO=causalOrder))
+}
+# Chain graph
+randomDAG2_chain <- function(p,probConnect)
+{
+   # This function is modified from randomDAG2 function by Jonas Peters
+   DAG <- diag(rep(0,p))
+   causalOrder <- sample(p)
+   DAG[causalOrder[1],causalOrder[2]] <- 1
+   for(i in 3:(p))
+   {
+      node <- causalOrder[i]
+      possibleParents <- causalOrder[1:(i-1)]
+      possibleParents <- possibleParents[which(rowSums(DAG[possibleParents,])<4)]
+      if (length(possibleParents)>0){
+         Parents <- sample(possibleParents,min(length(possibleParents),2))
+         DAG[Parents,node] <- rep(1,length(Parents))
+      }
+      DAG[causalOrder[i-1],node]<-1
+   }
+   return(list(DAG=DAG,TO=causalOrder))
+}
+# Hub-and-chain graph
+randomDAG2_hub <- function(p,probConnect)
+{
+   # This function is modified from randomDAG2 function by Jonas Peters
+   DAG <- diag(rep(0,p))
+   causalOrder <- sample(p)
+   Z<-10
+   for(i in 1:(p))
+   {
+      node <- causalOrder[i]
+      DAG[causalOrder[i-1],node]<-1
+      if (i>2){DAG[causalOrder[sample(seq(min(i-1,Z)),2)],node]<-1}
+   }
+   DAG[causalOrder[1],causalOrder[2]] <- 1
+   return(list(DAG=DAG,TO=causalOrder))
+}
+
+###############
+### Generate data
+###############
+Bmin<-0.5
+get_DAGdata<-function(n,p,pc,type='hub',err='g'){
+   if (type=='hub'){
+      D<-randomDAG2_hub(p,pc)
+   } else if (type=='chain') {
+      D<-randomDAG2_chain(p,pc)
+   } else {
+      D<-randomDAG2_er(p,pc)
+   }
+   truth<-D$DAG
+   TO<-D$TO
+   if (err == 'nong'){
+      errs <- matrix((rbinom(p * n,1,0.5)*2-1)*sqrt(0.8), nrow = p, ncol = n)
+   } else {
+      errs <- matrix(rnorm(p * n), nrow = p, ncol = n)
+   }
+   B<-t(truth)
+   B[B==1]<-runif(sum(truth),Bmin,1)*(2*rbinom(sum(truth),1,0.5)-1)
+   X <- solve(diag(rep(1, p)) - B, errs)
+   X <- t(X)
+   return(list(truth=truth,B=B,X=X,TO=TO))
+}
