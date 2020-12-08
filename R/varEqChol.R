@@ -563,18 +563,18 @@ get_DAGdata<-function(n,p,pc,type='hub',err='g', Bmin = 0.5){
 #' @export
 #' @return - adjacency matrix and ordering
 
-EqVarDAG_HD <- function(X,mtd="ztest",alpha=0.05,
+EqVarDAG_BT <- function(X,mtd="ztest",alpha=0.05,
                         threshold=1e-1,FCD=NULL,precmtd=NULL)
 {
    n<-dim(X)[1]
    p<-dim(X)[2]
-   TO=EqVarDAG_HD_internal(X)
+   TO=EqVarDAG_BT_internal(X)
    adj=DAG_from_Ordering(X,TO,mtd,alpha,threshold,FCD,precmtd)
    return(list(adj=adj,TO=TO))
 }
 
 
-EqVarDAG_HD_internal<-function(X){
+EqVarDAG_BT_internal<-function(X){
    n<-dim(X)[1]
    p<-dim(X)[2]
    S<-cov(X)
