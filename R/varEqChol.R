@@ -20,7 +20,7 @@ rowdeletion <- function(L, k, const = 0.001)
       if(k < p)
       {
             omega = L[(k + 1):p, k]
-            new.L[(k + 1):p,(k+1) : p] = t(cholup(t(L[(k + 1):p,(k+1) : p]), omega, TRUE))
+            new.L[(k + 1):p,(k+1) : p] = t(mgcv::cholup(t(L[(k + 1):p,(k+1) : p]), omega, TRUE))
       }
       return(new.L)
 }
