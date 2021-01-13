@@ -4,7 +4,10 @@ Version: 0.0.0.9000
 Author: Aramayis Dallakyan
 Maintainer: Aramayis Dallakyan <dallakyan1988@tamu.edu>
 Description: Learning variable ordering from Cholesky factor.
-Imports: mgcv, varband, EqVarDAG
+Imports: 
+      mgcv, 
+      varband, 
+      EqVarDAG
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
