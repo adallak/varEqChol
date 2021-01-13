@@ -193,7 +193,7 @@ DAG_from_Ordering<-function(X,TO,mtd="ztest",alpha=0.05,
             if(p==2){return(gm)}
             for (i in 3:p){
                   gm[TO[1:(i-1)],TO[i]]=
-                        vselect(X[,TO[1:i-1]],X[,TO[i]],alpha=alpha,p_total = p,
+                        EqVarDAG::vselect(X[,TO[1:i-1]],X[,TO[i]],alpha=alpha,p_total = p,
                                 selmtd = mtd,FCD = FCD,precmtd = precmtd)$selected
             }
             return(gm!=0)
